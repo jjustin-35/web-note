@@ -10,18 +10,16 @@
   let websiteFilter = '';
 
   onMount(async () => {
-    // TODO: Replace with actual Supabase fetch
-    notes = [
-      {
-        id: '1',
-        title: 'Important Note',
-        content: 'This is a preview of the note content. It can contain multiple lines of text and will be truncated after three lines.',
-        website: 'example.com',
-        color: 'yellow',
-        position: { x: 0, y: 0 }
+    try {
+      const response = await fetch('/api/notes');
+      if (!response.ok) {
+        throw new Error('Failed to fetch notes');
       }
-    ];
-    filteredNotes = notes;
+      notes = await response.json();
+      filteredNotes = notes;
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+    }
   });
 
   function filterNotes() {
@@ -29,7 +27,7 @@
       const matchesSearch = searchQuery === '' || 
         note.title.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesWebsite = websiteFilter === '' || 
-        note.website.toLowerCase().includes(websiteFilter.toLowerCase());
+        note?.website?.toLowerCase().includes(websiteFilter.toLowerCase());
       return matchesSearch && matchesWebsite;
     });
   }
