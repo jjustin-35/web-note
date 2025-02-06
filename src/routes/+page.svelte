@@ -5,37 +5,38 @@
   import SearchBar from '$lib/components/SearchBar.svelte';
 
   let notes: Note[] = [];
-  let filteredNotes: Note[] = [];
   let searchQuery = '';
   let websiteFilter = '';
 
-  onMount(async () => {
+  async function fetchNotes() {
     try {
-      const response = await fetch('/api/notes');
+      const queryParams = new URLSearchParams({
+        search: searchQuery,
+        website: websiteFilter
+      }).toString();
+      const response = await fetch(`/api/notes?${queryParams}`);
       if (!response.ok) {
         throw new Error('Failed to fetch notes');
       }
       notes = await response.json();
-      filteredNotes = notes;
     } catch (error) {
       console.error('Error fetching notes:', error);
     }
-  });
+  }
 
-  function filterNotes() {
-    filteredNotes = notes.filter(note => {
-      const matchesSearch = searchQuery === '' || 
-        note.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesWebsite = websiteFilter === '' || 
-        note?.website?.toLowerCase().includes(websiteFilter.toLowerCase());
-      return matchesSearch && matchesWebsite;
-    });
+  onMount(fetchNotes);
+
+  // Debounce the search to avoid too many requests
+  let searchTimeout: NodeJS.Timeout;
+  function handleSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(fetchNotes, 300);
   }
 
   $: {
-    searchQuery;
-    websiteFilter;
-    filterNotes();
+    searchQuery; // reactive dependency
+    websiteFilter; // reactive dependency
+    handleSearch();
   }
 </script>
 
@@ -49,7 +50,7 @@
   </nav>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-    {#each filteredNotes as note (note.id)}
+    {#each notes as note (note.id)}
       <NoteCard {note} />
     {/each}
   </div>
