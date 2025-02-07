@@ -22,12 +22,26 @@
 <div class="sidebar" class:visible role="complementary" aria-label="Notes sidebar">
   <div class="header">
     <h2>Web Notes</h2>
-    <button class="add-button" on:click={handleAdd} aria-label="Add new note">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-    </button>
+    <div class="header-controls">
+      <a 
+        href="http://localhost:3000" 
+        target="_blank" 
+        class="dashboard-link" 
+        aria-label="Open dashboard in new tab"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+      </a>
+      <button class="add-button" on:click={handleAdd} aria-label="Add new note">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div class="notes-list" role="list" aria-label="List of notes">
@@ -80,23 +94,33 @@
     border-bottom: 1px solid #eee;
   }
 
+  .header-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
   h2 {
     margin: 0;
     font-size: 18px;
     color: #333;
   }
 
-  .add-button {
+  .add-button, .dashboard-link {
     padding: 8px;
     background: none;
     border: none;
     cursor: pointer;
     color: #666;
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .add-button:hover {
+  .add-button:hover, .dashboard-link:hover {
     background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
   }
 
   .notes-list {

@@ -25,17 +25,17 @@ This extension is built with TypeScript for better type safety and maintainabili
 
 1. Install dependencies:
 ```bash
-npm install
+yarn install
 ```
 
 2. Build the extension:
 ```bash
-npm run build
+yarn build
 ```
 
 3. For development with watch mode:
 ```bash
-npm run watch
+yarn watch
 ```
 
 ### Loading the Extension in Chrome
