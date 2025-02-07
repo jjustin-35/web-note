@@ -35,3 +35,69 @@ export const GET = async ({ url }: RequestEvent) => {
     });
   }
 };
+
+export const POST = async ({ request }: RequestEvent) => {
+  try {
+    const noteData = await request.json();
+    
+    const note = await prisma.note.create({
+      data: {
+        title: noteData.title,
+        content: noteData.content,
+        tags: noteData.tags || [],
+        website: noteData.website,
+        color: noteData.color,
+        position: noteData.position
+      }
+    });
+
+    return json(note);
+  } catch (error) {
+    console.error("Error creating note:", error);
+    return new Response(JSON.stringify({ error: "Failed to create note" }), {
+      status: 500,
+    });
+  }
+};
+
+export const PUT = async ({ request, params }: RequestEvent) => {
+  try {
+    const noteId = params.noteId;
+    const noteData = await request.json();
+    
+    const note = await prisma.note.update({
+      where: { id: noteId },
+      data: {
+        title: noteData.title,
+        content: noteData.content,
+        tags: noteData.tags || [],
+        website: noteData.website,
+        color: noteData.color,
+        position: noteData.position
+      }
+    });
+
+    return json(note);
+  } catch (error) {
+    console.error("Error updating note:", error);
+    return new Response(JSON.stringify({ error: "Failed to update note" }), {
+      status: 500,
+    });
+  }
+};
+
+export const DELETE = async ({ params }: RequestEvent) => {
+  try {
+    const noteId = params.noteId;
+    await prisma.note.delete({
+      where: { id: noteId }
+    });
+
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    return new Response(JSON.stringify({ error: "Failed to delete note" }), {
+      status: 500,
+    });
+  }
+};

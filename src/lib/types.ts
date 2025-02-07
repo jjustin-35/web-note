@@ -6,9 +6,11 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
   website?: string;
-  color?: 'yellow' | 'pink' | 'blue';
+  color?: "yellow" | "pink" | "blue";
   position?: {
     x: number;
     y: number;
   };
 }
+
+export type Color = "yellow" | "pink" | "blue";

@@ -3,10 +3,13 @@
   import type { Note } from '$lib/types';
   import NoteCard from '$lib/components/NoteCard.svelte';
   import SearchBar from '$lib/components/SearchBar.svelte';
+  import NoteForm from '$lib/components/NoteForm.svelte';
 
   let notes: Note[] = [];
   let searchQuery = '';
   let websiteFilter = '';
+  let isNoteFormOpen = false;
+  let editingNote: Note | null = null;
 
   async function fetchNotes() {
     try {
@@ -22,6 +25,70 @@
     } catch (error) {
       console.error('Error fetching notes:', error);
     }
+  }
+
+  async function handleSaveNote(event: CustomEvent<Note>) {
+    try {
+      const response = await fetch('/api/notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event.detail),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create note');
+      }
+
+      await fetchNotes();
+    } catch (error) {
+      console.error('Error creating note:', error);
+    }
+  }
+
+  async function handleUpdateNote(event: CustomEvent<{ id: string; note: Partial<Note> }>) {
+    try {
+      const { id, note } = event.detail;
+      const response = await fetch(`/api/notes/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(note),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update note');
+      }
+
+      await fetchNotes();
+      editingNote = null;
+    } catch (error) {
+      console.error('Error updating note:', error);
+    }
+  }
+
+  async function handleDeleteNote(event: CustomEvent<string>) {
+    try {
+      const noteId = event.detail;
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete note');
+      }
+
+      await fetchNotes();
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
+  }
+
+  function handleEditNote(event: CustomEvent<Note>) {
+    editingNote = event.detail;
+    isNoteFormOpen = true;
   }
 
   onMount(fetchNotes);
@@ -41,7 +108,7 @@
 </script>
 
 <div class="w-full min-h-screen bg-slate-50 p-4 sm:p-6 md:p-8">
-  <nav class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+  <nav class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
     <h1 class="text-2xl font-bold">Note Papers</h1>
     <SearchBar 
       bind:searchQuery
@@ -51,13 +118,30 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
     {#each notes as note (note.id)}
-      <NoteCard {note} />
+      <NoteCard 
+        {note}
+        on:edit={handleEditNote}
+        on:delete={handleDeleteNote}
+      />
     {/each}
   </div>
 
-  <div class="sticky bottom-6 right-6 flex justify-end">
-    <button class="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-all">
+  <div class="fixed bottom-6 right-6 flex justify-end">
+    <button 
+      on:click={() => {
+        editingNote = null;
+        isNoteFormOpen = true;
+      }}
+      class="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-all w-14 h-14"
+    >
       <span class="material-symbols-outlined">add</span>
     </button>
   </div>
+
+  <NoteForm 
+    bind:isOpen={isNoteFormOpen}
+    bind:editingNote
+    on:save={handleSaveNote}
+    on:update={handleUpdateNote}
+  />
 </div>
