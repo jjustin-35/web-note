@@ -1,0 +1,125 @@
+.web-note {
+  position: absolute;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: move;
+  z-index: 10000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.web-note.yellow {
+  background-color: rgba(254, 249, 195, 0.95);
+}
+
+.web-note.pink {
+  background-color: rgba(252, 231, 243, 0.95);
+}
+
+.web-note.blue {
+  background-color: rgba(224, 242, 254, 0.95);
+}
+
+.web-note-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-right: 24px;
+}
+
+.web-note-content {
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.web-note-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.web-note:hover .web-note-controls {
+  opacity: 1;
+}
+
+.web-note-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #666;
+  border-radius: 4px;
+}
+
+.web-note-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+#web-note-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 500px;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 10001;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+#web-note-sidebar.open {
+  transform: translateX(0);
+}
+
+.web-note-sidebar-toggle {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  z-index: 10002;
+}
+
+.web-note-color-picker {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.web-note-color-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.web-note-color-option.selected {
+  border-color: #2563eb;
+}
+
+.web-note-color-option.yellow {
+  background-color: rgb(254, 249, 195);
+}
+
+.web-note-color-option.pink {
+  background-color: rgb(252, 231, 243);
+}
+
+.web-note-color-option.blue {
+  background-color: rgb(224, 242, 254);
+}
