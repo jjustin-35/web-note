@@ -8,6 +8,8 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "prisma": "prisma generate",
+    "prisma:push": "prisma db push",
     "prisma:seed": "NODE_OPTIONS='--loader ts-node/esm' ts-node --project prisma/tsconfig.json prisma/seed.mts"
   },
   "devDependencies": {

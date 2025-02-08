@@ -125,7 +125,7 @@
 <style>
   .note {
     position: absolute;
-    min-width: 200px;
+    width: 200px;
     min-height: 120px;
     padding: 16px;
     border-radius: 8px;

@@ -49,7 +49,9 @@ export default defineConfig({
     svelte({
       compilerOptions: {
         dev: process.env.NODE_ENV !== "production",
+        css: "injected", // TODO: memo this vite setting
       },
+      emitCss: false,
     }),
     copyFiles(),
   ],
@@ -63,5 +65,6 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: target === "content",
     sourcemap: true,
+    cssCodeSplit: false,
   },
 });
