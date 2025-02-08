@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Tailwind from './Tailwind.svelte';
   import Note from './Note.svelte';
   import Sidebar from './Sidebar.svelte';
   import type { NoteData } from '../types';
@@ -95,13 +96,26 @@
 
   function handleNoteSelect(event: CustomEvent<NoteData>) {
     const note = event.detail;
+    if (!note) return;
     const element = document.querySelector(`[data-note-id="${note.id}"]`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
+
+  // Listen for messages from the sidebar
+  chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    if (message.type === 'CREATE_NOTE') {
+      createNote();
+    } else if (message.type === 'FOCUS_NOTE') {
+      handleNoteSelect({ detail: notes.find(n => n.id === message.noteId) } as CustomEvent<NoteData>);
+    }
+    sendResponse({ success: true });
+    return true;
+  });
 </script>
 
+<Tailwind />
 {#each notes as note (note.id)}
   <Note 
     {note}
@@ -112,7 +126,6 @@
 
 <Sidebar
   {notes}
-  bind:visible={sidebarVisible}
   on:add={createNote}
   on:select={handleNoteSelect}
 />

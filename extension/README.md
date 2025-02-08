@@ -1,27 +1,42 @@
-# Web Note Papers Chrome Extension
+# Web Note Chrome Extension
 
-A Chrome extension that allows you to add draggable sticky notes to any web page.
+A Chrome extension for adding draggable sticky notes to any web page.
 
 ## Features
 
-- Add notes to any web page
-- Drag and drop notes anywhere
-- Three color options (yellow, pink, blue)
-- Notes persist across page visits
-- Sidebar to view all notes
-- First line becomes note title
-- Keyboard shortcut (Ctrl/Cmd + Shift + N) to add notes
+- Add draggable sticky notes to any web page
+- Choose from different note colors
+- Notes persist across page reloads
+- Organize notes in a sidebar
+- Access notes from the dashboard
 
-## Development
+## Prerequisites
 
-This extension is built with TypeScript for better type safety and maintainability.
-
-### Prerequisites
-
-- Node.js and npm
+- Node.js (v16 or higher)
+- Yarn package manager
 - Chrome browser
 
-### Setup
+## Project Structure
+
+```
+extension/
+├── src/
+│   ├── components/
+│   │   ├── App.svelte
+│   │   ├── Note.svelte
+│   │   └── Sidebar.svelte
+│   ├── content.ts
+│   ├── sidebar.ts
+│   ├── sidebar.html
+│   ├── manifest.json
+│   └── types.ts
+├── dist/           # Built files
+├── vite.config.ts
+├── tsconfig.json
+└── package.json
+```
+
+## Development
 
 1. Install dependencies:
 ```bash
@@ -40,39 +55,24 @@ yarn watch
 
 ### Loading the Extension in Chrome
 
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable "Developer mode" in the top right
-3. Click "Load unpacked" and select the `dist` directory
-
-### Project Structure
-
-```
-extension/
-├── src/
-│   ├── content.ts      # Main extension logic
-│   ├── types.ts        # TypeScript type definitions
-│   └── styles/
-│       └── content.css # Styles for notes and sidebar
-├── manifest.json       # Extension manifest
-├── sidebar.html       # Sidebar template
-├── tsconfig.json      # TypeScript configuration
-└── package.json       # Project dependencies and scripts
-```
-
-## Building for Production
-
 1. Run the build command:
 ```bash
-npm run build
+yarn build
 ```
 
-2. The built extension will be in the `dist` directory
-3. You can then zip the `dist` directory for distribution
+2. Open Chrome and navigate to `chrome://extensions`
 
-## Contributing
+3. Enable "Developer mode" in the top right corner
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+4. Click "Load unpacked" and select the `extension` folder (the root folder containing the dist directory)
+
+5. The extension should now be loaded and ready to use
+
+## Usage
+
+1. Click the extension icon in your Chrome toolbar to open the side panel
+2. Click the "+" button to add a new note
+3. Drag notes around the page
+4. Click notes to edit their content
+5. Use the color picker to change note colors
+6. Access the dashboard to manage all your notes

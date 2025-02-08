@@ -1,172 +1,109 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import type { NoteData } from '../types';
-
+  import Tailwind from './Tailwind.svelte';
+  
   export let notes: NoteData[] = [];
-  export let visible = false;
 
-  const dispatch = createEventDispatcher<{
-    add: void;
-    select: NoteData;
-  }>();
+  async function loadNotes() {
+    try {
+      const response = await fetch('http://localhost:5173/api/notes');
+      const data = await response.json();
+      notes = data;
+    } catch (error) {
+      console.error('Failed to load notes:', error);
+    }
+  }
 
-  function handleAdd() {
-    dispatch('add');
+  async function handleAdd() {
+    // Get the active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+
+    // Send message to content script to create a note
+    chrome.tabs.sendMessage(tab.id, { 
+      type: 'CREATE_NOTE',
+      data: {
+        title: 'New Note',
+        content: '',
+        website: tab.url || '',
+        color: 'yellow',
+        position: { x: 100, y: 100 }
+      }
+    });
   }
 
   function handleSelect(note: NoteData) {
-    dispatch('select', note);
+    // Send message to content script to focus the note
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          type: 'FOCUS_NOTE', 
+          noteId: note.id 
+        });
+      }
+    });
   }
+
+  // Load notes when component mounts
+  loadNotes();
 </script>
 
-<div class="sidebar" class:visible role="complementary" aria-label="Notes sidebar">
-  <div class="header">
-    <h2>Web Notes</h2>
-    <div class="header-controls">
+<Tailwind />
+<div class="w-full min-h-screen bg-slate-50">
+  <nav class="sticky top-0 z-10 bg-white shadow-sm p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Note Papers</h1>
+    <div class="flex gap-2">
       <a 
-        href="http://localhost:3000" 
+        href="http://localhost:5173" 
         target="_blank" 
-        class="dashboard-link" 
+        class="p-2 text-gray-500 hover:text-gray-700"
         aria-label="Open dashboard in new tab"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="3" y1="9" x2="21" y2="9"></line>
-          <line x1="9" y1="21" x2="9" y2="9"></line>
-        </svg>
+        <span class="material-symbols-outlined">dashboard</span>
       </a>
-      <button class="add-button" on:click={handleAdd} aria-label="Add new note">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
+      <button 
+        class="p-2 text-gray-500 hover:text-gray-700" 
+        on:click={handleAdd}
+        aria-label="Add new note"
+      >
+        <span class="material-symbols-outlined">add</span>
       </button>
     </div>
-  </div>
+  </nav>
 
-  <div class="notes-list" role="list" aria-label="List of notes">
+  <div class="p-4">
     {#if notes.length === 0}
-      <div class="empty-state">
-        No notes yet. Click the + button to create one.
+      <div class="flex flex-col items-center justify-center gap-4 mt-8 text-gray-500">
+        <span class="material-symbols-outlined text-4xl">note_add</span>
+        <p>No notes yet</p>
+        <button 
+          on:click={handleAdd}
+          class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
+        >
+          Create your first note
+        </button>
       </div>
     {:else}
-      {#each notes as note}
-        <div role="listitem">
-          <button 
-            class="note-item {note.color}"
+      <div class="grid grid-cols-1 gap-4">
+        {#each notes as note}
+          <div 
+            role="button"
+            tabindex="0"
+            class="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-4 cursor-pointer"
             on:click={() => handleSelect(note)}
             on:keydown={(e) => e.key === 'Enter' && handleSelect(note)}
-            aria-label="Note: {note.title}"
           >
-            <div class="note-title">{note.title}</div>
-            <div class="note-content">{note.content}</div>
-          </button>
-        </div>
-      {/each}
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="font-semibold truncate">{note.title || 'Untitled Note'}</h3>
+            </div>
+            <p class="text-gray-600 text-sm line-clamp-3">{note.content || 'No content'}</p>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <span class="px-2 py-1 rounded text-xs {note.color === 'yellow' ? 'bg-yellow-100' : note.color === 'pink' ? 'bg-pink-100' : 'bg-blue-100'}">{note.color}</span>
+              <span class="px-2 py-1 rounded text-xs bg-blue-100">Website: {note.website}</span>
+            </div>
+          </div>
+        {/each}
+      </div>
     {/if}
   </div>
 </div>
-
-<style>
-  .sidebar {
-    position: fixed;
-    top: 0;
-    right: -320px;
-    width: 320px;
-    height: 100vh;
-    background: white;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-    z-index: 999999;
-    transition: right 0.3s ease;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sidebar.visible {
-    right: 0;
-  }
-
-  .header {
-    padding: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-  }
-
-  .header-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  h2 {
-    margin: 0;
-    font-size: 18px;
-    color: #333;
-  }
-
-  .add-button, .dashboard-link {
-    padding: 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #666;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .add-button:hover, .dashboard-link:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #333;
-  }
-
-  .notes-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: #666;
-    margin-top: 32px;
-  }
-
-  .note-item {
-    width: 100%;
-    text-align: left;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
-    border: none;
-    background: none;
-  }
-
-  .note-item:hover {
-    transform: translateX(-4px);
-  }
-
-  .note-item.yellow { background-color: #fff9c4; }
-  .note-item.pink { background-color: #f8bbd0; }
-  .note-item.blue { background-color: #bbdefb; }
-
-  .note-title {
-    font-weight: bold;
-    margin-bottom: 4px;
-    color: #333;
-  }
-
-  .note-content {
-    font-size: 14px;
-    color: #666;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-</style>
