@@ -29,38 +29,42 @@ function copyFiles() {
   };
 }
 
+// Get the build target from environment variable, default to content
+const target = process.env.BUILD_TARGET || "content";
+
+const config = {
+  content: {
+    input: resolve(__dirname, "src/content.ts"),
+    output: "content.js",
+  },
+  sidebar: {
+    input: resolve(__dirname, "src/sidebar.ts"),
+    output: "sidebar.js",
+  },
+  serviceWorker: {
+    input: resolve(__dirname, "src/serviceWorker.ts"),
+    output: "serviceWorker.js",
+  },
+};
+
 export default defineConfig({
   plugins: [
     svelte({
       compilerOptions: {
         dev: process.env.NODE_ENV !== "production",
       },
-      preprocess: {
-        style: ({ content }) => {
-          return {
-            code: content,
-            map: null,
-          };
-        },
-      },
     }),
     copyFiles(),
   ],
   build: {
-    rollupOptions: {
-      input: {
-        content: resolve(__dirname, "src/content.ts"),
-        sidebar: resolve(__dirname, "src/sidebar.ts"),
-        "service-worker": resolve(__dirname, "src/service-worker.ts"),
-      },
-      output: {
-        entryFileNames: "[name].js",
-        inlineDynamicImports: false,
-        assetFileNames: "assets/[name].[hash][extname]",
-      },
+    lib: {
+      entry: config[target].input,
+      name: target,
+      fileName: () => config[target].output,
+      formats: ["iife"],
     },
     outDir: "dist",
-    emptyOutDir: true,
+    emptyOutDir: target === "content",
     sourcemap: true,
   },
 });

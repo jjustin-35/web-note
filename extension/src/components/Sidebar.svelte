@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { NoteData } from '../types';
-  import Tailwind from './Tailwind.svelte';
   
   export let notes: NoteData[] = [];
 
@@ -48,21 +47,20 @@
   loadNotes();
 </script>
 
-<Tailwind />
-<div class="w-full min-h-screen bg-slate-50">
-  <nav class="sticky top-0 z-10 bg-white shadow-sm p-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold">Note Papers</h1>
-    <div class="flex gap-2">
+<div class="container">
+  <nav class="header">
+    <h1 class="title">Note Papers</h1>
+    <div class="actions">
       <a 
         href="http://localhost:5173" 
         target="_blank" 
-        class="p-2 text-gray-500 hover:text-gray-700"
+        class="action-button"
         aria-label="Open dashboard in new tab"
       >
         <span class="material-symbols-outlined">dashboard</span>
       </a>
       <button 
-        class="p-2 text-gray-500 hover:text-gray-700" 
+        class="action-button" 
         on:click={handleAdd}
         aria-label="Add new note"
       >
@@ -71,35 +69,35 @@
     </div>
   </nav>
 
-  <div class="p-4">
+  <div class="content">
     {#if notes.length === 0}
-      <div class="flex flex-col items-center justify-center gap-4 mt-8 text-gray-500">
-        <span class="material-symbols-outlined text-4xl">note_add</span>
+      <div class="empty-state">
+        <span class="material-symbols-outlined icon">note_add</span>
         <p>No notes yet</p>
         <button 
           on:click={handleAdd}
-          class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
+          class="create-button"
         >
           Create your first note
         </button>
       </div>
     {:else}
-      <div class="grid grid-cols-1 gap-4">
+      <div class="notes-list">
         {#each notes as note}
           <div 
             role="button"
             tabindex="0"
-            class="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-4 cursor-pointer"
+            class="note-item"
             on:click={() => handleSelect(note)}
             on:keydown={(e) => e.key === 'Enter' && handleSelect(note)}
           >
-            <div class="flex justify-between items-start mb-3">
-              <h3 class="font-semibold truncate">{note.title || 'Untitled Note'}</h3>
+            <div class="note-header">
+              <h3 class="note-title">{note.title || 'Untitled Note'}</h3>
             </div>
-            <p class="text-gray-600 text-sm line-clamp-3">{note.content || 'No content'}</p>
-            <div class="flex flex-wrap gap-2 mt-4">
-              <span class="px-2 py-1 rounded text-xs {note.color === 'yellow' ? 'bg-yellow-100' : note.color === 'pink' ? 'bg-pink-100' : 'bg-blue-100'}">{note.color}</span>
-              <span class="px-2 py-1 rounded text-xs bg-blue-100">Website: {note.website}</span>
+            <p class="note-content">{note.content || 'No content'}</p>
+            <div class="note-tags">
+              <span class="tag {note.color}">{note.color}</span>
+              <span class="tag website">Website: {note.website}</span>
             </div>
           </div>
         {/each}
@@ -107,3 +105,151 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .container {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f8fafc;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-button {
+    padding: 0.5rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action-button:hover {
+    color: #374151;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    color: #6b7280;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+  }
+
+  .create-button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .create-button:hover {
+    background-color: #2563eb;
+  }
+
+  .notes-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .note-item {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+
+  .note-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .note-title {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .note-content {
+    color: #4b5563;
+    font-size: 0.875rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .note-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .tag {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .tag.yellow {
+    background-color: #fef3c7;
+  }
+
+  .tag.pink {
+    background-color: #fce7f3;
+  }
+
+  .tag.blue {
+    background-color: #dbeafe;
+  }
+
+  .tag.website {
+    background-color: #dbeafe;
+  }
+</style>
