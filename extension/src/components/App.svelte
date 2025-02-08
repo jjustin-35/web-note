@@ -4,8 +4,6 @@
   import type { NoteData } from '../types';
 
   let notes: NoteData[] = [];
-  // let sidebarVisible = false;
-  // let toggleButton: HTMLButtonElement;
 
   const API_URL = 'http://localhost:5173/api';
 

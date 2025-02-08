@@ -9,20 +9,17 @@ function copyFiles() {
     name: "copy-files",
     writeBundle() {
       // Files to copy from src to dist
-      const filesToCopy = [
-        { src: "src/manifest.json", dest: "manifest.json" },
-        { src: "src/sidebar.html", dest: "sidebar.html" },
-      ];
+      const filesToCopy = ["manifest.json", "sidebar.html"];
 
-      filesToCopy.forEach(({ src, dest }) => {
-        const srcPath = resolve(__dirname, src);
-        const destPath = resolve(__dirname, "dist", dest);
+      filesToCopy.forEach((fileName) => {
+        const srcPath = resolve(__dirname, "src", fileName);
+        const destPath = resolve(__dirname, "dist", fileName);
 
         if (fs.existsSync(srcPath)) {
           fs.copyFileSync(srcPath, destPath);
-          console.log(`Copied ${src} to dist/${dest}`);
+          console.log(`Copied ${fileName} to dist/${fileName}`);
         } else {
-          console.warn(`Warning: ${src} not found`);
+          console.warn(`Warning: ${fileName} not found`);
         }
       });
     },
