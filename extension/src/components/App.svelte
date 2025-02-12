@@ -1,27 +1,37 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Note from './Note.svelte';
-  import type { NoteData } from '../types';
+  import { MessageType, type NoteData } from '../types';
+  import { getNotes, postNote, putNote, deleteNote } from '../apis/notes';
 
   let notes: NoteData[] = [];
 
-  const API_URL = 'http://localhost:5173/api';
-
-  onMount(async () => {
-    await loadNotes();
-  });
-
-  async function loadNotes() {
+  onMount(() => {
+    (async () => {
     try {
-      const response = await fetch(`${API_URL}/notes`);
-      const data = await response.json();
-      notes = data;
+      notes = await getNotes();
     } catch (error) {
       console.error('Failed to load notes:', error);
-    }
-  }
+    }})()
 
-  async function createNote() {
+    const messageListener = (message: any, _: any, sendResponse: (response: any) => void) => {
+      if (message.type === MessageType.CREATE_NOTE) {
+        createNewNote();
+      } else if (message.type === MessageType.FOCUS_NOTE) {
+        handleNoteSelect({ detail: notes.find((n) => n.id === message.noteId) } as CustomEvent<NoteData>);
+      }
+      sendResponse({ success: true });
+      return true;
+    };
+
+    chrome.runtime.onMessage.addListener(messageListener);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(messageListener);
+    };
+  });
+
+  async function createNewNote() {
     const note: Partial<NoteData> = {
       title: 'New Note',
       content: '',
@@ -31,15 +41,28 @@
     };
 
     try {
-      const response = await fetch(`${API_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(note)
-      });
-      const newNote = await response.json();
+      const newNote = await postNote(note);
       notes = [...notes, newNote];
     } catch (error) {
       console.error('Failed to create note:', error);
+    }
+  }
+
+  async function handleUpdateNote(note: NoteData) {
+    try {
+      const updatedNote = await putNote(note.id, note);
+      notes = notes.map((n) => n.id === updatedNote.id ? updatedNote : n);
+    } catch (error) {
+      console.error('Failed to update note:', error);
+    }
+  }
+
+  async function handleDeleteNote(id: string) {
+    try {
+      await deleteNote(id);
+      notes = notes.filter((n) => n.id !== id);
+    } catch (error) {
+      console.error('Failed to delete note:', error);
     }
   }
 
@@ -51,47 +74,13 @@
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
-
-  // Listen for messages from the sidebar
-  chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-    if (message.type === 'CREATE_NOTE') {
-      createNote();
-    } else if (message.type === 'FOCUS_NOTE') {
-      handleNoteSelect({ detail: notes.find(n => n.id === message.noteId) } as CustomEvent<NoteData>);
-    }
-    sendResponse({ success: true });
-    return true;
-  });
 </script>
 
 {#each notes as note (note.id)}
   <Note 
     {note}
-    on:update={async (event) => {
-      try {
-        const response = await fetch(`${API_URL}/notes/${note.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(event.detail)
-        });
-        if (!response.ok) throw new Error('Failed to update note');
-        const updatedNote = await response.json();
-        notes = notes.map(n => n.id === updatedNote.id ? updatedNote : n);
-      } catch (error) {
-        console.error('Failed to update note:', error);
-      }
-    }}
-    on:delete={async () => {
-      try {
-        const response = await fetch(`${API_URL}/notes/${note.id}`, {
-          method: 'DELETE'
-        });
-        if (!response.ok) throw new Error('Failed to delete note');
-        notes = notes.filter(n => n.id !== note.id);
-      } catch (error) {
-        console.error('Failed to delete note:', error);
-      }
-    }}
+    on:update={async (event) => handleUpdateNote(event.detail)}
+    on:delete={async () => handleDeleteNote(note.id)}
   />
 {/each}
 

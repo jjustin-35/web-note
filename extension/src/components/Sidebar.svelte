@@ -1,17 +1,19 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { NoteData } from '../types';
+  import { getNotes } from '../apis/notes';
+  import { DASHBOARD_URL } from '../config';
   
   export let notes: NoteData[] = [];
 
-  async function loadNotes() {
+  onMount(async () => {
     try {
-      const response = await fetch('http://localhost:5173/api/notes');
-      const data = await response.json();
+      const data = await getNotes();
       notes = data;
     } catch (error) {
       console.error('Failed to load notes:', error);
     }
-  }
+  })
 
   async function handleAdd() {
     // Get the active tab
@@ -42,9 +44,6 @@
       }
     });
   }
-
-  // Load notes when component mounts
-  loadNotes();
 </script>
 
 <div class="container">
@@ -52,7 +51,7 @@
     <h1 class="title">Note Papers</h1>
     <div class="actions">
       <a 
-        href="http://localhost:5173" 
+        href={DASHBOARD_URL} 
         target="_blank" 
         class="action-button"
         aria-label="Open dashboard in new tab"
