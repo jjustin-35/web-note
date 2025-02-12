@@ -35,8 +35,8 @@
 
   async function handleUpdateNote(event: CustomEvent<{ id: string; note: Partial<Note> }>) {
     try {
-      const { id, note } = event.detail;
-      await putNote(id, note);
+      const { note } = event.detail;
+      await putNote(note);
       await fetchNotes();
       editingNote = null;
     } catch (error) {

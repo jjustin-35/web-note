@@ -34,8 +34,8 @@ export async function postNote(note: Partial<Note>): Promise<Note> {
   return response.json();
 }
 
-export async function putNote(id: string, note: Partial<Note>): Promise<Note> {
-  const response = await fetch(`${API_BASE_URL}/notes/${id}`, {
+export async function putNote(note: Partial<Note>): Promise<Note> {
+  const response = await fetch(`${API_BASE_URL}/notes`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export async function putNote(id: string, note: Partial<Note>): Promise<Note> {
 }
 
 export async function deleteNote(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/notes/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/notes?nodeId=${id}`, {
     method: 'DELETE',
   });
 
