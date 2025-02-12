@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Note } from '$lib/types';
+  import { getNotes, postNote, putNote, deleteNote } from '$lib/apis/notes';
   import NoteCard from '$lib/components/NoteCard.svelte';
   import SearchBar from '$lib/components/SearchBar.svelte';
   import NoteForm from '$lib/components/NoteForm.svelte';
+  import { debounce } from '$lib/helpers/debounce';
 
   let notes: Note[] = [];
   let searchQuery = '';
@@ -13,15 +15,10 @@
 
   async function fetchNotes() {
     try {
-      const queryParams = new URLSearchParams({
+      notes = await getNotes({
         search: searchQuery,
         website: websiteFilter
-      }).toString();
-      const response = await fetch(`/api/notes?${queryParams}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch notes');
-      }
-      notes = await response.json();
+      });
     } catch (error) {
       console.error('Error fetching notes:', error);
     }
@@ -29,18 +26,7 @@
 
   async function handleSaveNote(event: CustomEvent<Note>) {
     try {
-      const response = await fetch('/api/notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(event.detail),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create note');
-      }
-
+      await postNote(event.detail);
       await fetchNotes();
     } catch (error) {
       console.error('Error creating note:', error);
@@ -50,18 +36,7 @@
   async function handleUpdateNote(event: CustomEvent<{ id: string; note: Partial<Note> }>) {
     try {
       const { id, note } = event.detail;
-      const response = await fetch(`/api/notes/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(note),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update note');
-      }
-
+      await putNote(id, note);
       await fetchNotes();
       editingNote = null;
     } catch (error) {
@@ -71,15 +46,7 @@
 
   async function handleDeleteNote(event: CustomEvent<string>) {
     try {
-      const noteId = event.detail;
-      const response = await fetch(`/api/notes/${noteId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete note');
-      }
-
+      await deleteNote(event.detail);
       await fetchNotes();
     } catch (error) {
       console.error('Error deleting note:', error);
@@ -91,14 +58,9 @@
     isNoteFormOpen = true;
   }
 
-  onMount(fetchNotes);
+  const handleSearch = debounce(fetchNotes, 300);
 
-  // Debounce the search to avoid too many requests
-  let searchTimeout: NodeJS.Timeout;
-  function handleSearch() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(fetchNotes, 300);
-  }
+  onMount(fetchNotes);
 
   $: {
     searchQuery; // reactive dependency
