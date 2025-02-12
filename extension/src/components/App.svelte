@@ -5,20 +5,25 @@
   import { getNotes, postNote, putNote, deleteNote } from '../apis/notes';
 
   let notes: NoteData[] = [];
+  let focusedNoteId: string | null = null;
 
   onMount(() => {
     (async () => {
-    try {
-      notes = await getNotes();
-    } catch (error) {
-      console.error('Failed to load notes:', error);
-    }})()
+      try {
+        notes = await getNotes();
+      } catch (error) {
+        console.error('Failed to load notes:', error);
+      }
+    })();
 
     const messageListener = (message: any, _: any, sendResponse: (response: any) => void) => {
       if (message.type === MessageType.CREATE_NOTE) {
         createNewNote();
       } else if (message.type === MessageType.FOCUS_NOTE) {
-        handleNoteSelect({ detail: notes.find((n) => n.id === message.noteId) } as CustomEvent<NoteData>);
+        const note = notes.find((n) => n.id === message.noteId);
+        if (note) {
+          handleNoteSelect({ detail: note } as CustomEvent<NoteData>);
+        }
       }
       sendResponse({ success: true });
       return true;
@@ -43,6 +48,10 @@
     try {
       const newNote = await postNote(note);
       notes = [...notes, newNote];
+      const element = document.querySelector(`[data-note-id="${newNote.id}"]`);
+      if (element) {
+        (element as HTMLElement).click();
+      }
     } catch (error) {
       console.error('Failed to create note:', error);
     }
@@ -50,7 +59,7 @@
 
   async function handleUpdateNote(note: NoteData) {
     try {
-      const updatedNote = await putNote(note.id, note);
+      const updatedNote = await putNote(note);
       notes = notes.map((n) => n.id === updatedNote.id ? updatedNote : n);
     } catch (error) {
       console.error('Failed to update note:', error);
@@ -61,6 +70,10 @@
     try {
       await deleteNote(id);
       notes = notes.filter((n) => n.id !== id);
+
+      if (focusedNoteId === id) {
+        focusedNoteId = null;
+      }
     } catch (error) {
       console.error('Failed to delete note:', error);
     }
@@ -69,18 +82,25 @@
   function handleNoteSelect(event: CustomEvent<NoteData>) {
     const note = event.detail;
     if (!note) return;
-    const element = document.querySelector(`[data-note-id="${note.id}"]`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+
+    focusedNoteId = note.id;
+  }
+
+  function handleNoteFocus(event: CustomEvent<string>) {
+    const id = event.detail;
+    if (!id) return;
+
+    focusedNoteId = id;
   }
 </script>
 
 {#each notes as note (note.id)}
   <Note 
     {note}
+    focused={note.id === focusedNoteId}
     on:update={async (event) => handleUpdateNote(event.detail)}
     on:delete={async () => handleDeleteNote(note.id)}
+    on:focus={handleNoteFocus}
   />
 {/each}
 

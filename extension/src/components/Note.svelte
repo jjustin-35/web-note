@@ -5,14 +5,17 @@
   import Icon from "./Icon.svelte";
 
   export let note: NoteData;
+  export let focused: boolean = false;
 
   const dispatch = createEventDispatcher<{
     update: NoteData;
     delete: { id: string };
+    focus: NoteData['id'];
   }>();
 
   let isEdit = false;
   let dragOffset: { x: number; y: number } | null = null;
+  let originalPosition: { x: number; y: number } | null = null;
   let contentEl: HTMLDivElement;
   let saveTimeout: number | null = null;
 
@@ -22,12 +25,15 @@
     if (isEdit) return;
     const target = e.target as HTMLElement;
 
+    originalPosition = { ...note.position };
+
     dragOffset = {
       x: e.clientX - note.position.x,
       y: e.clientY - note.position.y,
     };
 
     target.style.cursor = "grabbing";
+    dispatch("focus", note.id);
   }
 
   function handleDragMove(e: MouseEvent) {
@@ -47,12 +53,15 @@
     dragOffset = null;
     const target = e.target as HTMLElement;
     target.style.cursor = "move";
-    dispatch("update", note);
+
+    if (JSON.stringify(originalPosition) !== JSON.stringify(note.position)) {
+      dispatch("update", note);
+    }
   }
 
   function handleContentChange() {
     if (!isEdit) return;
-    note.content = contentEl.innerHTML;
+    note.content = contentEl.innerText;
     note.title = note.content.split("\n")[0].trim() || "Untitled Note";
 
     if (saveTimeout) {
@@ -75,13 +84,14 @@
 </script>
 
 <div
-  class="note {note.color} drag-handle {isEdit ? 'drag-disable' : ''}"
+  class="note {note.color} drag-handle {isEdit ? 'drag-disable' : ''} {focused ? 'focused' : ''}"
   style="left: {note.position.x}px; top: {note.position.y}px;"
   role="button"
   tabindex="0"
   on:mousedown={handleDragStart}
   on:mousemove={handleDragMove}
   on:mouseup={handleDragEnd}
+  data-note-id={note.id}
   aria-label="Draggable note"
 >
   <div class="controls">
@@ -135,7 +145,13 @@
     padding: 8px 16px 16px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 999999;
+    z-index: 9999;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .note.focused {
+    z-index: 10000;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   }
 
   .drag-handle {
