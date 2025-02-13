@@ -6,15 +6,48 @@
 
   let notes: NoteData[] = [];
   let focusedNoteId: string | null = null;
+  let currentWebsite: string = window.location.href;
+
+  // 標準化 URL 函數
+  function normalizeUrl(url: string): string {
+    return url.replace(/^https?:\/\/(www\.)?/, '').split('#')[0];
+  }
+
+  async function loadNotes() {
+    try {
+      notes = await getNotes({
+        website: normalizeUrl(currentWebsite)
+      });
+    } catch (error) {
+      console.error('Failed to load notes:', error);
+    }
+  }
 
   onMount(() => {
-    (async () => {
-      try {
-        notes = await getNotes();
-      } catch (error) {
-        console.error('Failed to load notes:', error);
-      }
-    })();
+    loadNotes();
+
+    // 監聽 URL 變化
+    const handleUrlChange = () => {
+      currentWebsite = window.location.href;
+      loadNotes();
+    };
+
+    // 監聽 history 變化
+    window.addEventListener('popstate', handleUrlChange);
+    
+    // 監聽使用 pushState 或 replaceState 的變化
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function(data: any, unused: string, url?: string | URL) {
+      originalPushState.call(this, data, unused, url);
+      handleUrlChange();
+    };
+
+    history.replaceState = function(data: any, unused: string, url?: string | URL) {
+      originalReplaceState.call(this, data, unused, url);
+      handleUrlChange();
+    };
 
     const messageListener = (message: any, _: any, sendResponse: (response: any) => void) => {
       if (message.type === MessageType.CREATE_NOTE) {
@@ -33,6 +66,9 @@
 
     return () => {
       chrome.runtime.onMessage.removeListener(messageListener);
+      window.removeEventListener('popstate', handleUrlChange);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
     };
   });
 
@@ -40,7 +76,7 @@
     const note: Partial<NoteData> = {
       title: 'New Note',
       content: '',
-      website: window.location.href,
+      website: normalizeUrl(currentWebsite),
       color: 'yellow',
       position: { x: 100, y: 100 }
     };
@@ -48,10 +84,7 @@
     try {
       const newNote = await postNote(note);
       notes = [...notes, newNote];
-      const element = document.querySelector(`[data-note-id="${newNote.id}"]`);
-      if (element) {
-        (element as HTMLElement).click();
-      }
+      focusedNoteId = newNote.id;
     } catch (error) {
       console.error('Failed to create note:', error);
     }

@@ -17,7 +17,6 @@
   let dragOffset: { x: number; y: number } | null = null;
   let originalPosition: { x: number; y: number } | null = null;
   let contentEl: HTMLDivElement;
-  let saveTimeout: number | null = null;
 
   const colors: Color[] = ["yellow", "pink", "blue"];
 
@@ -61,16 +60,27 @@
 
   function handleContentChange() {
     if (!isEdit) return;
-    note.content = contentEl.innerText;
+    note.content = contentEl.textContent as string;
+    console.log(note.content);
     note.title = note.content.split("\n")[0].trim() || "Untitled Note";
+  }
 
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
-    }
-
-    saveTimeout = window.setTimeout(() => {
+  function toggleEdit() {
+    if (isEdit) {
       dispatch("update", note);
-    }, 500);
+    }
+    isEdit = !isEdit;
+  }
+
+  function handleBlur(e: FocusEvent) {
+    const target = e.currentTarget as HTMLElement;
+    const relatedElement = e.relatedTarget as HTMLElement;
+    if (target.contains(relatedElement)) return;
+
+    console.log(target);
+    console.log(relatedElement);
+
+    toggleEdit();
   }
 
   function handleColorChange(color: Color) {
@@ -91,12 +101,13 @@
   on:mousedown={handleDragStart}
   on:mousemove={handleDragMove}
   on:mouseup={handleDragEnd}
+  on:blur={handleBlur}
   data-note-id={note.id}
   aria-label="Draggable note"
 >
   <div class="controls">
-    <button class="button edit" aria-label="{isEdit ? 'finish' : ''} edit note" on:click={() => isEdit = !isEdit}>
-      <Icon type={IconType.EDIT} />
+    <button class="button edit" aria-label="{isEdit ? 'finish' : ''} edit note" on:click={toggleEdit}>
+      <Icon type={isEdit ? IconType.CHECK : IconType.EDIT} />
     </button>
     <button
       class="button delete"
@@ -114,10 +125,9 @@
     bind:this={contentEl}
     role="textbox"
     on:input={handleContentChange}
+    on:blur={handleBlur}
     aria-multiline="true"
-  >
-    {note.content}
-  </div>
+  ></div>
   {:else}
   <p class="content">{note.content}</p>
   {/if}
@@ -147,6 +157,8 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 9999;
     transition: box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
   }
 
   .note.focused {
@@ -204,6 +216,11 @@
   .content {
     margin-top: 8px;
     outline: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    word-break: break-word;
+    white-space: pre-wrap;
+    height: 100%;
   }
 
   .color-picker {

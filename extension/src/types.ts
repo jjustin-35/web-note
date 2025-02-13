@@ -24,5 +24,6 @@ export enum MessageType {
 
 export enum IconType {
   EDIT = 'edit',
-  DELETE = 'delete'
+  DELETE = 'delete',
+  CHECK = 'check'
 }
