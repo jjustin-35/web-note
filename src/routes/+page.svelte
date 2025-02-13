@@ -5,6 +5,8 @@
   import NoteCard from '$lib/components/NoteCard.svelte';
   import SearchBar from '$lib/components/SearchBar.svelte';
   import NoteForm from '$lib/components/NoteForm.svelte';
+  import LoginButton from '$lib/components/LoginButton.svelte';
+  import { page } from '$app/stores';
   import { debounce } from '$lib/helpers/debounce';
 
   let notes: Note[] = [];
@@ -13,7 +15,11 @@
   let isNoteFormOpen = false;
   let editingNote: Note | null = null;
 
+  $: isAuthenticated = !!$page.data.session;
+
   async function fetchNotes() {
+    if (!isAuthenticated) return;
+    
     try {
       notes = await getNotes({
         search: searchQuery,
@@ -72,33 +78,41 @@
 <div class="w-full min-h-screen bg-slate-50 p-4 sm:p-6 md:p-8">
   <nav class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
     <h1 class="text-2xl font-bold">Note Papers</h1>
+    <LoginButton />
     <SearchBar 
       bind:searchQuery
       bind:websiteFilter
     />
   </nav>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-    {#each notes as note (note.id)}
-      <NoteCard 
-        {note}
-        on:edit={handleEditNote}
-        on:delete={handleDeleteNote}
-      />
-    {/each}
-  </div>
+  {#if isAuthenticated}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      {#each notes as note (note.id)}
+        <NoteCard 
+          {note}
+          on:edit={handleEditNote}
+          on:delete={handleDeleteNote}
+        />
+      {/each}
+    </div>
 
-  <div class="fixed bottom-6 right-6 flex justify-end">
-    <button 
-      on:click={() => {
-        editingNote = null;
-        isNoteFormOpen = true;
-      }}
-      class="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-all w-14 h-14"
-    >
-      <span class="material-symbols-outlined">add</span>
-    </button>
-  </div>
+    <div class="fixed bottom-6 right-6 flex justify-end">
+      <button 
+        on:click={() => {
+          editingNote = null;
+          isNoteFormOpen = true;
+        }}
+        class="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-all w-14 h-14"
+      >
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    </div>
+  {:else}
+    <div class="text-center py-12">
+      <h2 class="text-2xl font-semibold mb-4">歡迎使用 Web Notes</h2>
+      <p class="text-gray-600 mb-8">請登入以開始使用筆記功能</p>
+    </div>
+  {/if}
 
   <NoteForm 
     bind:isOpen={isNoteFormOpen}
