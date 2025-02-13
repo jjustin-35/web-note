@@ -139,7 +139,7 @@
         </div>
 
         <div>
-          <label class="form-label mb-2">Color</label>
+          <div class="form-label mb-2">Color</div>
           <div class="flex gap-4">
             {#each colors as color}
               <button
