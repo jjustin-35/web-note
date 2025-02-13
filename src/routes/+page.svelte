@@ -5,27 +5,42 @@
   import NoteCard from '$lib/components/NoteCard.svelte';
   import Navbar from '$lib/components/Navbar.svelte';
   import NoteForm from '$lib/components/NoteForm.svelte';
+  import NoteCardSkeleton from '$lib/components/NoteCardSkeleton.svelte';
   import { page } from '$app/stores';
   import { debounce } from '$lib/helpers/debounce';
+  import { fade } from 'svelte/transition';
 
   let notes: Note[] = [];
   let searchQuery = '';
   let websiteFilter = '';
   let isNoteFormOpen = false;
   let editingNote: Note | null = null;
+  let isLoading = true;
+  let mounted = false;
 
   $: isAuthenticated = !!$page.data.session;
+
+  onMount(() => {
+    mounted = true;
+    fetchNotes();
+  });
 
   async function fetchNotes() {
     if (!isAuthenticated) return;
     
     try {
-      notes = await getNotes({
+      isLoading = true;
+      const newNotes = await getNotes({
         search: searchQuery,
         website: websiteFilter
       });
+      // 添加小延遲以確保動畫順暢
+      await new Promise(resolve => setTimeout(resolve, 300));
+      notes = newNotes;
     } catch (error) {
       console.error('Error fetching notes:', error);
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -65,8 +80,6 @@
 
   const handleSearch = debounce(fetchNotes, 300);
 
-  onMount(fetchNotes);
-
   $: {
     searchQuery; // reactive dependency
     websiteFilter; // reactive dependency
@@ -79,13 +92,25 @@
 
   {#if isAuthenticated}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-      {#each notes as note (note.id)}
-        <NoteCard 
-          {note}
-          on:edit={handleEditNote}
-          on:delete={handleDeleteNote}
-        />
-      {/each}
+      {#if mounted}
+        {#if isLoading}
+          {#each Array(6) as _, i (i)}
+            <div in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+              <NoteCardSkeleton />
+            </div>
+          {/each}
+        {:else}
+          {#each notes as note (note.id)}
+            <div in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+              <NoteCard 
+                {note}
+                on:edit={handleEditNote}
+                on:delete={handleDeleteNote}
+              />
+            </div>
+          {/each}
+        {/if}
+      {/if}
     </div>
 
     <div class="fixed bottom-6 right-6 flex justify-end">
