@@ -23,4 +23,6 @@ model Note {
   position    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  userId      String   // Store Google OAuth user id
+  userEmail   String   // Store Google OAuth user email
 }

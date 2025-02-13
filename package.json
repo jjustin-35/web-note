@@ -28,6 +28,9 @@
     "vite": "^5.0.3"
   },
   "type": "module",
+  "prisma": {
+    "seed": "node --loader ts-node/esm ./prisma/seed.mts"
+  },
   "dependencies": {
     "@auth/core": "^0.37.4",
     "@auth/sveltekit": "^1.7.4",

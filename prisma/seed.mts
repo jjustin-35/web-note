@@ -2,53 +2,62 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// 模擬的測試用戶
+const TEST_USER = {
+  id: 'test-user-id',
+  email: 'test@example.com',
+};
+
 async function main() {
-  const testNotes = [
+  // 清除現有數據
+  await prisma.note.deleteMany();
+
+  // 創建測試筆記
+  const notes = [
     {
-      title: 'Welcome to Web Notes!',
-      content: 'This is your first note. You can create, edit, and organize your notes here.',
-      tags: ['welcome', 'getting-started'],
-      website: 'web-note.app',
-      color: 'yellow',
-      position: { x: 100, y: 100 }
+      title: '測試筆記 1',
+      content: '這是第一個測試筆記的內容。',
+      tags: ['測試', '筆記'],
+      website: 'https://example.com',
+      color: '#FFE4E1',
+      position: { x: 100, y: 100 },
+      userId: TEST_USER.id,
+      userEmail: TEST_USER.email,
     },
     {
-      title: 'Markdown Support',
-      content: '# You can use markdown\n\n- Make lists\n- **Bold text**\n- *Italic text*\n\nAnd much more!',
-      tags: ['markdown', 'tutorial'],
-      website: 'github.com',
-      color: 'blue',
-      position: { x: 300, y: 150 }
+      title: 'JavaScript 學習筆記',
+      content: '今天學習了 Promise 和 async/await。',
+      tags: ['JavaScript', '學習'],
+      website: 'https://javascript.info',
+      color: '#E6E6FA',
+      position: { x: 200, y: 200 },
+      userId: TEST_USER.id,
+      userEmail: TEST_USER.email,
     },
     {
-      title: 'Development Tasks',
-      content: '1. Implement search functionality\n2. Add tag filtering\n3. Improve UI/UX\n4. Add dark mode',
-      tags: ['development', 'todo'],
-      website: 'localhost:5173',
-      color: 'pink',
-      position: { x: 500, y: 200 }
-    }
+      title: 'React 組件設計',
+      content: '組件設計的最佳實踐和常見模式。',
+      tags: ['React', '前端'],
+      website: 'https://reactjs.org',
+      color: '#F0FFF0',
+      position: { x: 300, y: 300 },
+      userId: TEST_USER.id,
+      userEmail: TEST_USER.email,
+    },
   ];
 
-  console.log('Creating seed data...');
-  
-  for (const note of testNotes) {
-    try {
-      await prisma.note.create({
-        data: note
-      });
-      console.log(`Created note: ${note.title}`);
-    } catch (error) {
-      console.error(`Error creating note ${note.title}:`, error);
-    }
+  for (const note of notes) {
+    await prisma.note.create({
+      data: note,
+    });
   }
 
-  console.log('Seed data creation completed!');
+  console.log('Seed data created successfully');
 }
 
 main()
   .catch((e) => {
-    console.error('Error in seed script:', e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {

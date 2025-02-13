@@ -4,15 +4,23 @@ import type { RequestEvent, RequestHandler } from "@sveltejs/kit";
 
 const prisma = new PrismaClient();
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
   try {
+    const session = await locals.auth();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
     const search = url.searchParams.get("search") || "";
     const website = url.searchParams.get("website") || "";
     const noteId = url.searchParams.get("noteId") || "";
 
     const notes = await prisma.note.findMany({
-      where: {
+      where: { 
         AND: [
+          { userEmail: session.user.email },
           {
             OR: [
               { title: { contains: search, mode: "insensitive" } },
@@ -40,8 +48,15 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request }: RequestEvent) => {
+export const POST: RequestHandler = async ({ request, locals }: RequestEvent) => {
   try {
+    const session = await locals.auth();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
     const noteData = await request.json();
 
     const note = await prisma.note.create({
@@ -52,6 +67,8 @@ export const POST: RequestHandler = async ({ request }: RequestEvent) => {
         website: noteData.website,
         color: noteData.color,
         position: noteData.position,
+        userId: session.user.id || session.user.email,
+        userEmail: session.user.email,
       },
     });
 
@@ -64,13 +81,30 @@ export const POST: RequestHandler = async ({ request }: RequestEvent) => {
   }
 };
 
-export const PUT: RequestHandler = async ({ request }) => {
+export const PUT: RequestHandler = async ({ request, locals }: RequestEvent) => {
   try {
+    const session = await locals.auth();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
     const noteData = await request.json();
-    const noteId = noteData.id;
+
+    // Verify note ownership
+    const existingNote = await prisma.note.findUnique({
+      where: { id: noteData.id },
+    });
+
+    if (!existingNote || existingNote.userEmail !== session.user.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
 
     const note = await prisma.note.update({
-      where: { id: noteId },
+      where: { id: noteData.id },
       data: {
         title: noteData.title,
         content: noteData.content,
@@ -78,6 +112,7 @@ export const PUT: RequestHandler = async ({ request }) => {
         website: noteData.website,
         color: noteData.color,
         position: noteData.position,
+        userEmail: session.user.email,
       },
     });
 
@@ -90,20 +125,38 @@ export const PUT: RequestHandler = async ({ request }) => {
   }
 };
 
-export const DELETE: RequestHandler = async ({ url }) => {
+export const DELETE: RequestHandler = async ({ url, locals }) => {
   try {
-    const noteId = url.searchParams.get("noteId");
-    if (!noteId) {
-      return new Response(JSON.stringify({ error: "Missing noteId" }), {
+    const session = await locals.getSession();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
+    const id = url.searchParams.get("id");
+    if (!id) {
+      return new Response(JSON.stringify({ error: "Note ID is required" }), {
         status: 400,
       });
     }
 
-    await prisma.note.delete({
-      where: { id: noteId },
+    // Verify note ownership
+    const existingNote = await prisma.note.findUnique({
+      where: { id },
     });
 
-    return new Response(null, { status: 204 });
+    if (!existingNote || existingNote.userEmail !== session.user.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
+    await prisma.note.delete({
+      where: { id },
+    });
+
+    return json({ success: true });
   } catch (error) {
     console.error("Error deleting note:", error);
     return new Response(JSON.stringify({ error: "Failed to delete note" }), {
