@@ -3,9 +3,8 @@
   import type { Note } from '$lib/types';
   import { getNotes, postNote, putNote, deleteNote } from '$lib/apis/notes';
   import NoteCard from '$lib/components/NoteCard.svelte';
-  import SearchBar from '$lib/components/SearchBar.svelte';
+  import Navbar from '$lib/components/Navbar.svelte';
   import NoteForm from '$lib/components/NoteForm.svelte';
-  import LoginButton from '$lib/components/LoginButton.svelte';
   import { page } from '$app/stores';
   import { debounce } from '$lib/helpers/debounce';
 
@@ -76,14 +75,7 @@
 </script>
 
 <div class="w-full min-h-screen bg-slate-50 p-4 sm:p-6 md:p-8">
-  <nav class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-    <h1 class="text-2xl font-bold">Note Papers</h1>
-    <LoginButton />
-    <SearchBar 
-      bind:searchQuery
-      bind:websiteFilter
-    />
-  </nav>
+  <Navbar bind:searchQuery bind:websiteFilter />
 
   {#if isAuthenticated}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -108,7 +100,7 @@
       </button>
     </div>
   {:else}
-    <div class="text-center py-12">
+    <div class="text-center py-12 flex flex-col items-center">
       <h2 class="text-2xl font-semibold mb-4">歡迎使用 Web Notes</h2>
       <p class="text-gray-600 mb-8">請登入以開始使用筆記功能</p>
     </div>
