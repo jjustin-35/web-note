@@ -127,7 +127,7 @@ export const PUT: RequestHandler = async ({ request, locals }: RequestEvent) => 
 
 export const DELETE: RequestHandler = async ({ url, locals }) => {
   try {
-    const session = await locals.getSession();
+    const session = await locals.auth();
     if (!session?.user?.email) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
