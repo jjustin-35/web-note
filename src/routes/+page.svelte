@@ -81,8 +81,8 @@
   const handleSearch = debounce(fetchNotes, 300);
 
   $: {
-    searchQuery; // reactive dependency
-    websiteFilter; // reactive dependency
+    searchQuery;
+    websiteFilter;
     handleSearch();
   }
 </script>
@@ -113,17 +113,6 @@
       {/if}
     </div>
 
-    <div class="fixed bottom-6 right-6 flex justify-end">
-      <button 
-        on:click={() => {
-          editingNote = null;
-          isNoteFormOpen = true;
-        }}
-        class="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-all w-14 h-14"
-      >
-        <span class="material-symbols-outlined">add</span>
-      </button>
-    </div>
   {:else}
     <div class="text-center py-12 flex flex-col items-center">
       <h2 class="text-2xl font-semibold mb-4">歡迎使用 Web Notes</h2>

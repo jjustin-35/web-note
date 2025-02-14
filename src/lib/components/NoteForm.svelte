@@ -65,25 +65,6 @@
   }
 </script>
 
-<style>
-  /* Add these styles to your global CSS or keep them scoped */
-  .form-label {
-    @apply block text-sm font-medium text-gray-700;
-  }
-  .form-input {
-    @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
-  }
-  .btn {
-    @apply px-4 py-2 text-sm font-medium rounded-md;
-  }
-  .btn-secondary {
-    @apply text-gray-700 bg-gray-100 hover:bg-gray-200;
-  }
-  .btn-primary {
-    @apply text-white bg-blue-500 hover:bg-blue-600;
-  }
-</style>
-
 {#if isOpen}
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg w-full max-w-2xl p-6">
@@ -101,7 +82,7 @@
             type="text"
             id="title"
             bind:value={note.title}
-            class="form-input"
+            class="form-input p-2"
             required
           />
         </div>
@@ -112,7 +93,7 @@
             id="content"
             bind:value={note.content}
             rows="4"
-            class="form-input"
+            class="form-input p-2"
             required
           ></textarea>
         </div>
@@ -123,7 +104,7 @@
             type="text"
             id="website"
             bind:value={note.website}
-            class="form-input"
+            class="form-input p-2"
           />
         </div>
 
@@ -133,7 +114,7 @@
             type="text"
             id="tags"
             bind:value={tagsInput}
-            class="form-input"
+            class="form-input p-2"
             placeholder="tag1, tag2, tag3"
           />
         </div>
@@ -171,3 +152,22 @@
     </div>
   </div>
 {/if}
+
+<style>
+  /* Add these styles to your global CSS or keep them scoped */
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+  .form-input {
+    @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
+  }
+  .btn {
+    @apply px-4 py-2 text-sm font-medium rounded-md;
+  }
+  .btn-secondary {
+    @apply text-gray-700 bg-gray-100 hover:bg-gray-200;
+  }
+  .btn-primary {
+    @apply text-white bg-blue-500 hover:bg-blue-600;
+  }
+</style>
