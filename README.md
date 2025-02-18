@@ -98,6 +98,7 @@ web-note/
 - `website`: 關聯的網站 URL
 - `color`: 筆記顏色
 - `position`: 筆記位置
+- `size`: 筆記大小
 - `userId`: Google 用戶 ID
 - `userEmail`: 用戶郵箱
 - `createdAt`: 創建時間

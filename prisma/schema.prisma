@@ -13,6 +13,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+type Size {
+  width  Int
+  height Int
+}
+
+type Position {
+  x Int
+  y Int
+}
+
 model Note {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
@@ -20,7 +30,8 @@ model Note {
   tags        String[]
   website     String?
   color       String?
-  position    Json?
+  position    Position?
+  size        Size?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String   // Store Google OAuth user id
